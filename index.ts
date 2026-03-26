@@ -1,59 +1,70 @@
 import { eventBus } from '../../core/EventBus';
 
-export interface ComplianceReport {
+export interface FraudAlert {
   id: string;
   transactionId: string;
-  ruleId: string;
-  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  type: 'VELOCITY_LIMIT' | 'AMOUNT_DEVIATION' | 'SUSPICIOUS_PATTERN';
+  score: number; // 0 to 100
   timestamp: string;
   message: string;
 }
 
-export class BankCompliance {
-  // --- AML Rules (Anti-Money Laundering) ---
-  private static AML_LIMIT = 10000; // Threshold for mandatory reporting
-  private static SUSPICIOUS_COUNTRIES = ['COUNTRY_X', 'COUNTRY_Y', 'COUNTRY_Z'];
+export class BankFraudDetection {
+  // --- Fraud Pattern Analysis ---
+  private static VELOCITY_LIMIT = 5; // Max transactions per minute
+  private static AMOUNT_DEVIATION_THRESHOLD = 3.0; // Standard deviations from mean
 
-  static async checkTransaction(tx: any): Promise<ComplianceReport[]> {
-    const reports: ComplianceReport[] = [];
+  static async analyzeTransaction(tx: any, history: any[]): Promise<FraudAlert | null> {
+    const alerts: FraudAlert[] = [];
 
-    // Rule 1: High value transaction threshold
-    if (Math.abs(tx.amount) >= this.AML_LIMIT) {
-      reports.push({
-        id: `aml-${Date.now()}-1`,
+    // Rule 1: Velocity Check (simulated)
+    const recentTxCount = history.filter(h => 
+      new Date(h.timestamp).getTime() > Date.now() - 60000
+    ).length;
+
+    if (recentTxCount >= this.VELOCITY_LIMIT) {
+      return {
+        id: `fraud-${Date.now()}-1`,
         transactionId: tx.id,
-        ruleId: 'AML_THRESHOLD_EXCEEDED',
-        severity: 'MEDIUM',
+        type: 'VELOCITY_LIMIT',
+        score: 85,
         timestamp: new Date().toISOString(),
-        message: `Transaction amount ${tx.amount} exceeds reporting threshold of ${this.AML_LIMIT}`
-      });
+        message: `High transaction velocity detected: ${recentTxCount} tx/min`
+      };
     }
 
-    // Rule 2: Suspicious country check (simulated)
-    if (this.SUSPICIOUS_COUNTRIES.includes(tx.toCountry || '')) {
-      reports.push({
-        id: `aml-${Date.now()}-2`,
+    // Rule 2: Amount Deviation (simulated)
+    const meanAmount = history.reduce((acc, h) => acc + Math.abs(h.amount), 0) / (history.length || 1);
+    if (Math.abs(tx.amount) > meanAmount * this.AMOUNT_DEVIATION_THRESHOLD) {
+      return {
+        id: `fraud-${Date.now()}-2`,
         transactionId: tx.id,
-        ruleId: 'SUSPICIOUS_DESTINATION_COUNTRY',
-        severity: 'HIGH',
+        type: 'AMOUNT_DEVIATION',
+        score: 70,
         timestamp: new Date().toISOString(),
-        message: `Transaction directed to high-risk country: ${tx.toCountry}`
-      });
+        message: `Transaction amount ${tx.amount} significantly deviates from average ${meanAmount.toFixed(2)}`
+      };
     }
 
-    // If any reports, publish to compliance event stream
-    if (reports.length > 0) {
-      for (const report of reports) {
-        await eventBus.publish('compliance.report', report, `compliance-${report.id}`);
-      }
+    // Rule 3: Pattern Analysis (simulated)
+    // For example, multiple small transactions followed by a large one
+    const smallTxCount = history.slice(-3).filter(h => Math.abs(h.amount) < 100).length;
+    if (smallTxCount >= 3 && Math.abs(tx.amount) > 5000) {
+      return {
+        id: `fraud-${Date.now()}-3`,
+        transactionId: tx.id,
+        type: 'SUSPICIOUS_PATTERN',
+        score: 95,
+        timestamp: new Date().toISOString(),
+        message: `Suspicious layering pattern detected: Multiple small tx followed by large tx`
+      };
     }
 
-    return reports;
+    return null;
   }
 
-  static async generateSAR(tx: any): Promise<string> {
-    // Suspicious Activity Report (SAR) generation
-    console.log(`[BankCompliance] Generating SAR for transaction: ${tx.id}`);
-    return `SAR-${tx.id}-${Date.now()}`;
+  static async flagTransaction(tx: any, alert: FraudAlert): Promise<void> {
+    console.log(`[BankFraudDetection] Flagging transaction: ${tx.id} due to ${alert.type}`);
+    await eventBus.publish('fraud.alert', alert, `fraud-${alert.id}`);
   }
 }
