@@ -45,4 +45,4 @@ An open-source corporate treasury and liquidity management platform. Designed as
 
 ## License
 
-Apache-2.0
+MIT
