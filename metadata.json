@@ -1,0 +1,5 @@
+{
+  "name": "CashPro-OSS",
+  "description": "An open-source corporate treasury and liquidity management platform. Alternative to enterprise banking solutions.",
+  "requestFramePermissions": ["camera"]
+}

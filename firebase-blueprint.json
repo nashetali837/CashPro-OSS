@@ -1,0 +1,95 @@
+{
+  "entities": {
+    "Account": {
+      "title": "Account",
+      "description": "A corporate bank account or liquidity pool.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "number": { "type": "string" },
+        "balance": { "type": "number" },
+        "currency": { "type": "string" },
+        "type": { "type": "string", "enum": ["Checking", "Savings", "Liquidity", "Investment"] },
+        "lastUpdated": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "balance", "currency"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "A financial movement between accounts or external entities.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "description": { "type": "string" },
+        "amount": { "type": "number" },
+        "status": { "type": "string", "enum": ["Completed", "Pending", "Flagged"] },
+        "category": { "type": "string" },
+        "accountName": { "type": "string" },
+        "metadata": { "type": "object" }
+      },
+      "required": ["id", "date", "amount", "status"]
+    },
+    "SystemJob": {
+      "title": "SystemJob",
+      "description": "A background task or scheduled job (e.g., reconciliation, forecasting).",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "status": { "type": "string", "enum": ["Running", "Completed", "Failed", "Scheduled"] },
+        "lastRun": { "type": "string", "format": "date-time" },
+        "nextRun": { "type": "string", "format": "date-time" },
+        "progress": { "type": "number" }
+      },
+      "required": ["id", "name", "status"]
+    },
+    "EventStream": {
+      "title": "EventStream",
+      "description": "A stream of events for downstream processing (Kafka-like).",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "topic": { "type": "string" },
+        "payload": { "type": "object" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "topic", "payload"]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "A security or system audit log entry.",
+      "type": "object",
+      "properties": {
+        "message": { "type": "string" },
+        "type": { "type": "string", "enum": ["INFO", "WARN", "CRITICAL"] },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "uid": { "type": "string" }
+      },
+      "required": ["message", "type", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/accounts/{accountId}": {
+      "schema": "Account",
+      "description": "Corporate accounts collection."
+    },
+    "/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "Global transaction ledger."
+    },
+    "/jobs/{jobId}": {
+      "schema": "SystemJob",
+      "description": "Background job tracking."
+    },
+    "/events/{eventId}": {
+      "schema": "EventStream",
+      "description": "Downstream event log."
+    },
+    "/audit_logs/{logId}": {
+      "schema": "AuditLog",
+      "description": "Security audit trail."
+    }
+  }
+}

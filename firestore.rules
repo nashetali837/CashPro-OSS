@@ -1,0 +1,144 @@
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: accounts
+// Document ID: accountId
+// Fields:
+//   - id: string (required)
+//   - name: string (required)
+//   - number: string
+//   - balance: number (required)
+//   - currency: string (required)
+//   - type: string (Checking, Savings, Liquidity, Investment)
+//   - lastUpdated: string (date-time)
+//
+// Collection: transactions
+// Document ID: transactionId
+// Fields:
+//   - id: string (required)
+//   - date: string (required, date-time)
+//   - description: string
+//   - amount: number (required)
+//   - status: string (Completed, Pending, Flagged)
+//   - category: string
+//   - accountName: string
+//
+// Collection: jobs
+// Document ID: jobId
+// Fields:
+//   - id: string (required)
+//   - name: string (required)
+//   - status: string (Running, Completed, Failed, Scheduled)
+//   - progress: number
+//   - createdAt: timestamp
+//   - updatedAt: timestamp
+//
+// Collection: events
+// Document ID: eventId
+// Fields:
+//   - id: string (required)
+//   - topic: string (required)
+//   - payload: map (required)
+//   - timestamp: string (required, date-time)
+//   - serverTimestamp: timestamp
+//
+// ===============================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (request.auth.token.role == 'ADMIN' ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "nashetaliaiexpert@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidAccount(data) {
+      return data.id is string &&
+             data.name is string && data.name.size() < 100 &&
+             data.balance is number &&
+             data.currency is string && data.currency.size() == 3;
+    }
+
+    function isValidTransaction(data) {
+      return data.id is string &&
+             data.amount is number &&
+             data.status in ['Completed', 'Pending', 'Flagged'];
+    }
+
+    function isValidJob(data) {
+      return data.id is string &&
+             data.name is string &&
+             data.status in ['Running', 'Completed', 'Failed', 'Scheduled'] &&
+             data.progress is number && data.progress >= 0 && data.progress <= 100;
+    }
+
+    function isValidEvent(data) {
+      return data.id is string &&
+             data.topic is string &&
+             data.payload is map;
+    }
+
+    function isValidAuditLog(data) {
+      return data.message is string && data.message.size() < 1000 &&
+             data.type in ['INFO', 'WARN', 'CRITICAL'] &&
+             data.timestamp is string;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    match /accounts/{accountId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() && isValidAccount(request.resource.data);
+    }
+
+    match /transactions/{transactionId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() && isValidTransaction(request.resource.data);
+    }
+
+    match /jobs/{jobId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() && isValidJob(request.resource.data);
+    }
+
+    match /events/{eventId} {
+      allow read: if isAuthenticated();
+      allow create: if isAdmin() && isValidEvent(request.resource.data);
+      allow update, delete: if false; // Events are immutable
+    }
+
+    match /audit_logs/{logId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidAuditLog(request.resource.data);
+      allow update, delete: if false;
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow write: if isAdmin();
+    }
+  }
+}
