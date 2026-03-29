@@ -39,6 +39,13 @@ An open-source corporate treasury and liquidity management platform. Designed as
 
 5. **Build for production**:
    ```bash
+   # CashPro-OSS
+An open-source corporate treasury platform.
+
+## Deployment
+- **Docker**: `docker build -t cashpro-oss .`
+- **Terraform**: Located in `/infra/aws`
+- **K8s**: Located in `/infra/kubernetes`
    npm run build
    npm start
    ```
