@@ -1,0 +1,16 @@
+runtime: nodejs22
+instance_class: F1
+service: cashpro-oss
+
+env_variables:
+  NODE_ENV: "production"
+
+handlers:
+  - url: /.*
+    script: auto
+    secure: always
+
+automatic_scaling:
+  min_idle_instances: 1
+  max_instances: 10
+  target_cpu_utilization: 0.65
