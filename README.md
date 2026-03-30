@@ -39,16 +39,15 @@ An open-source corporate treasury and liquidity management platform. Designed as
 
 5. **Build for production**:
    ```bash
-   # CashPro-OSS
-An open-source corporate treasury platform.
+   
 
-Deployment:
+##Deployment:
 
 🚀 Deployment Overview
 
 This project is configured for a Multi-Cloud Hybrid Mesh architecture. It supports deployment across AWS, Azure, IBM Cloud, and Alibaba Cloud with a secure networking layer for database replication.
 
-📂 Infrastructure Directory Structure
+##📂 Infrastructure Directory Structure
 
 - `/.github/workflows/`: CI/CD pipelines for automated testing and deployment.
 - `/infra/aws/`: Terraform files for AWS ECS Fargate and Cross-Cloud VPN.
@@ -84,18 +83,18 @@ This project is configured for a Multi-Cloud Hybrid Mesh architecture. It suppor
    npm start
    ```
 
-   🔒 Networking & Replication
+ ##🔒 Networking & Replication
 
 The platform uses a **Full-Mesh IPsec VPN** topology with **BGP (Border Gateway Protocol)** dynamic routing to connect disparate cloud environments. Database replication (e.g., for CockroachDB or Global Aurora) is secured via private subnets and cross-cloud security group rules. BGP ensures high availability by automatically re-routing traffic in the event of a regional interconnect failure.
 
-🔒 Security & Compliance
+##🔒 Security & Compliance
 
 CashPro-OSS is designed with a "Security-First" architecture. For detailed information on our security policy, vulnerability reporting, and production hardening, please refer to:
 
 *   [**SECURITY.md**](./SECURITY.md): Security policy and vulnerability disclosure process.
 *   [**SECURITY_ADVISORY.md**](./SECURITY_ADVISORY.md): Production security guide and vulnerability report for the current version.
 
-Expert Note: The current mesh assumes static routing for simplicity. For production-scale global deployments, we recommend enabling BGP Dynamic Routing on the VPN gateways to handle automatic failover across cloud providers.
+##Expert Note: The current mesh assumes static routing for simplicity. For production-scale global deployments, we recommend enabling BGP Dynamic Routing on the VPN gateways to handle automatic failover across cloud providers.
 
 ## License
 
